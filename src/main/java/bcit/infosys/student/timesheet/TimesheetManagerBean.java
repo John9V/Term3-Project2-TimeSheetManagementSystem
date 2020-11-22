@@ -8,15 +8,26 @@ import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.time.LocalDate;
+import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.List;
 
 import javax.annotation.Resource;
 import javax.enterprise.context.ConversationScoped;
+import javax.inject.Inject;
 import javax.inject.Named;
 import javax.sql.DataSource;
+import javax.ws.rs.GET;
+import javax.ws.rs.POST;
+import javax.ws.rs.PUT;
+import javax.ws.rs.Path;
+import javax.ws.rs.PathParam;
+import javax.ws.rs.Produces;
+import javax.ws.rs.QueryParam;
 
 import bcit.infosys.student.employee.EditableEmployee;
+import bcit.infosys.student.employee.EmployeeBean;
+import bcit.infosys.student.employee.EmployeeManagerBean;
 
 /**
  * DAO for timesheets.
@@ -25,6 +36,7 @@ import bcit.infosys.student.employee.EditableEmployee;
  */
 @Named("timesheetManager")
 @ConversationScoped
+@Path("/timesheets")
 public class TimesheetManagerBean implements Serializable {
 
 	/**
@@ -32,6 +44,63 @@ public class TimesheetManagerBean implements Serializable {
 	 */
 	@Resource(mappedName = "java:jboss/datasources/MySQLDS")
 	private DataSource dataSource;
+	@Inject EmployeeManagerBean employeeManager;
+	@Inject EmployeeBean employeeBean;
+	
+	/**
+	 * Gets a list of timesheets for a given employee.
+	 * @param e the employee to get timesheets for.
+	 * @return a list of timesheets associated with the passed in employee.
+	 */
+	@Path("/number/{saltString}/{employeeNumber}")
+    @GET
+    @Produces("application/json")
+	public List<EditableTimesheet> getTimesheetsREST(@PathParam("saltString") String saltString, @PathParam("employeeNumber") Integer employeeNumber) {
+		ArrayList<EditableTimesheet> sheetList = new
+		        ArrayList<EditableTimesheet>();
+		System.out.println("Injected saltString: " + employeeBean.getSaltString());
+		Connection connection = null;
+		PreparedStatement stmt = null;
+		try {
+			try {
+				connection = dataSource.getConnection();
+				try {
+					int empId = employeeNumber;
+					
+					stmt = connection.prepareStatement("SELECT * FROM "
+					        + "TimesheetsT WHERE "
+							+ "EmployeeNumber = ?;");
+					stmt.setInt(1, empId);
+					ResultSet result = stmt.executeQuery();
+					while (result.next()) {
+						Date endWeek = result.getDate("EndWeek");
+						BigDecimal ot = result.getBigDecimal("Overtime");
+						BigDecimal ft = result.getBigDecimal("Flextime");
+						int sheetId = result.getInt("sheet_id");
+						EditableTimesheet t = new EditableTimesheet();
+						EditableEmployee e = employeeManager.getEmployeeByNumber(employeeNumber);
+						t.setEmployee(e);
+						t.setEndWeek(endWeek.toLocalDate());
+						t.setTimesheetId(sheetId);
+						sheetList.add(t);
+					}
+			} finally {
+				if (stmt != null) {
+					stmt.close();
+				}
+			}
+		} finally {
+			if (connection != null) {
+				connection.close();
+			}
+		}
+	} catch (SQLException ex) {
+		System.out.println("Error in get rows by timesheet");
+		ex.printStackTrace();
+		return null;
+	}
+		return sheetList;
+	}
 	
 	/**
 	 * Gets a list of timesheets for a given employee.
@@ -127,6 +196,42 @@ public class TimesheetManagerBean implements Serializable {
             System.out.println("Error in merge " + t);
             ex.printStackTrace();
         }
+	}
+	
+	@Path("/updateTimesheet/{saltString}/{sheetId}")
+	@PUT
+	public void updateTimesheetREST(@PathParam("saltString") String saltString, @QueryParam("empNum") Integer empNum,
+			@QueryParam("endWeek") String endWeek,
+			@QueryParam("ot") BigDecimal ot,
+			@QueryParam("ft") BigDecimal ft,
+			@PathParam("sheetId") Integer sheetId) {
+		EditableTimesheet t = new EditableTimesheet();
+		t.setOvertime(ot);
+		t.setFlextime(ft);
+		t.setTimesheetId(sheetId);
+		EditableEmployee e = employeeManager.getEmployeeByNumber(empNum);
+		t.setEmployee(e);
+		DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd");
+		LocalDate localDate = LocalDate.parse(endWeek, formatter);
+		t.setEndWeek(localDate);
+		updateTimesheet(t);
+	}
+	
+	@Path("/addTimesheet/{saltString}")
+	@POST
+	public void addTimesheetREST(@PathParam("saltString") String saltString, @QueryParam("empNum") Integer empNum,
+			@QueryParam("endWeek") String endWeek,
+			@QueryParam("ot") BigDecimal ot,
+			@QueryParam("ft") BigDecimal ft) {
+		EditableTimesheet t = new EditableTimesheet();
+		t.setOvertime(ot);
+		t.setFlextime(ft);
+		EditableEmployee e = employeeManager.getEmployeeByNumber(empNum);
+		t.setEmployee(e);
+		DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd");
+		LocalDate localDate = LocalDate.parse(endWeek, formatter);
+		t.setEndWeek(localDate);
+		addTimesheet(t);
 	}
 	
 	/**

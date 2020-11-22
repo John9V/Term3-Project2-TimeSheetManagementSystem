@@ -1,10 +1,17 @@
 package bcit.infosys.student.employee;
 
 import java.io.Serializable;
+import java.util.Random;
+
 import javax.enterprise.context.SessionScoped;
 import javax.faces.context.FacesContext;
 import javax.inject.Inject;
 import javax.inject.Named;
+import javax.ws.rs.PathParam;
+import javax.ws.rs.GET;
+import javax.ws.rs.Path;
+import javax.ws.rs.Produces;
+import javax.ws.rs.QueryParam;
 
 import bcit.infosys.student.credential.CredentialManagerBean;
 import ca.bcit.infosys.employee.Credentials;
@@ -16,6 +23,7 @@ import ca.bcit.infosys.employee.Credentials;
  */
 @Named("employeeBean")
 @SessionScoped
+@Path("/login")
 public class EmployeeBean extends EditableEmployee implements Serializable {
 
 	/**
@@ -26,6 +34,8 @@ public class EmployeeBean extends EditableEmployee implements Serializable {
 	 * DAO object for credentials.
 	 */
 	@Inject CredentialManagerBean credentialManager;
+	
+	String saltString;
 	
 	/**
 	 * Constructor for the employee bean.
@@ -76,6 +86,14 @@ public class EmployeeBean extends EditableEmployee implements Serializable {
 	 */
 	public String getUserName() {
 		return userName;
+	}
+	
+	public String getSaltString() {
+		return saltString;
+	}
+
+	public void setSaltString(String saltString) {
+		this.saltString = saltString;
 	}
 
 	/**
@@ -128,6 +146,48 @@ public class EmployeeBean extends EditableEmployee implements Serializable {
 			}
 		} else {
 			return "invalidCredentials";
+		}
+	}
+	
+	protected String generateSaltString() {
+        String SALTCHARS = "ABCDEFGHIJKLMNOPQRSTUVWXYZ1234567890";
+        StringBuilder salt = new StringBuilder();
+        Random rnd = new Random();
+        while (salt.length() < 18) { // length of the random string.
+            int index = (int) (rnd.nextFloat() * SALTCHARS.length());
+            salt.append(SALTCHARS.charAt(index));
+        }
+        String saltStr = salt.toString();
+        return saltStr;
+    }
+	
+	@Path("/{userName}/{password}")
+    @GET
+    @Produces("application/json")
+	public String loginREST(@PathParam("userName") String userName, @PathParam("password") String password) {
+		System.out.println("running" + userName + password);
+		Credentials c = new Credentials();
+		c.setUserName(userName);
+		c.setPassword(password);
+		credentialManager.validCredentials(c);
+		if (credentialManager.validCredentials(c)) {
+			System.out.println("valid");
+			saltString = generateSaltString();
+			EditableEmployee loggedInEmployee = employeeManager
+			        .getEmployeeByUserName(userName);
+			this.setName(loggedInEmployee.getName());
+			this.setEmpNumber(loggedInEmployee.getEmpNumber());
+			this.setUserName(loggedInEmployee.getUserName());
+			isAdmin = employeeManager
+			        .isAdmin(loggedInEmployee);
+			if (isAdmin) {
+				System.out.println("saltstring: " + saltString);
+				return saltString;
+			} else {
+				return saltString;
+			}
+		} else {
+			return saltString;
 		}
 	}
 	

@@ -104,7 +104,7 @@ public class CredentialManagerBean implements CredentialsList, Serializable {
         Statement stmt = null;
         try {
             try {
-                System.out.println("datasource:" + dataSource);
+                System.out.println("running in valid credentials");
                 connection = dataSource.getConnection();
                 try {
                     stmt = connection.createStatement();
