@@ -1,0 +1,27 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml"
+      xmlns:f="http://java.sun.com/jsf/core"
+      xmlns:h="http://java.sun.com/jsf/html">
+   <h:head>
+      <title>Log In</title>
+      <h:outputStylesheet library="css" name="styles.css"/>
+   </h:head>
+   <h:body>
+      <h:form>
+         <h3 class="header">#{msgs.headerLogin}</h3>
+         
+         <div class="field">
+         	<h4>#{msgs.username}</h4>
+         	<h:inputText value="#{employeeBean.userName}"/>
+         </div>
+         
+         <div class="field">
+         	<h4>#{msgs.pwd}</h4>
+         	<h:inputSecret value="#{employeeBean.password}"/>
+         </div>
+         
+         <div class="btnContainer"><h:commandButton action="#{employeeBean.login}" value="#{msgs.login}" /></div>
+      </h:form>
+   </h:body>
+</html>

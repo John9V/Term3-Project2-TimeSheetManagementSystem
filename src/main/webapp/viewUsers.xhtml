@@ -1,0 +1,68 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml"
+      xmlns:f="http://java.sun.com/jsf/core"
+      xmlns:h="http://java.sun.com/jsf/html"
+      xmlns:ui="http://java.sun.com/jsf/facelets">
+   <h:head><title>title</title></h:head>
+   <body>
+      <ui:composition template="#{employeeBean.template()}">
+         <ui:define name="windowTitle">
+         	#{msgs.headerUsers}
+         </ui:define>
+      
+         <ui:define name="content">
+            <h:form>
+         		<h1 class="header">#{msgs.headerUsers}</h1>
+         		
+         		<div class="main">
+         
+         			<h:dataTable value="#{employeeListBean.getEmployees()}" var="e"
+         				styleClass="table" rowClasses="odd,even" headerClass="tableHeading">
+         				<h:column>
+         					<f:facet name="header">
+      							<h:outputText value="#{msgs.edit}" />
+      						</f:facet>
+      						<h:selectBooleanCheckbox value="#{e.editable}" onclick="submit()" />
+         				</h:column>
+         		
+         				<h:column>
+         					<f:facet name="header">
+      							<h:outputText value="#{msgs.delete}" />
+      						</f:facet>
+      						<h:selectBooleanCheckbox value="#{e.deletable}" onclick="submit()" />
+         				</h:column>
+         	
+         				<h:column>
+      						<f:facet name="header">
+      							<h:outputText value="#{msgs.employeeName}"/>
+      						</f:facet>
+      						<h:inputText value="#{e.name}" rendered="#{e.editable}"/>
+      						<h:outputText value="#{e.name}" rendered="#{not e.editable}"/>
+      					</h:column>
+         	
+         				<h:column>
+      						<f:facet name="header">
+      							<h:outputText value="#{msgs.employeeNumber}"/>
+      						</f:facet>
+      						<h:outputText value="#{e.empNumber}"/>
+      					</h:column>
+      		
+      					<h:column>
+      						<f:facet name="header">
+      							<h:outputText value="#{msgs.employeeUsername}"/>
+      						</f:facet>
+      						<h:inputText value="#{e.userName}" rendered="#{e.editable}"/>
+      						<h:outputText value="#{e.userName}" rendered="#{not e.editable}"/>
+      					</h:column>
+         	
+         			</h:dataTable>
+         			<div class="editTableButtons">
+         				<h:commandButton value="#{msgs.commitChange}" action="#{employeeListBean.save()}"/>
+         			</div>
+         		</div>
+     		 </h:form>
+         </ui:define>
+      </ui:composition>
+   </body>
+</html>

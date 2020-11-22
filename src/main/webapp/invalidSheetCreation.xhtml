@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml"
+      xmlns:f="http://java.sun.com/jsf/core"
+      xmlns:h="http://java.sun.com/jsf/html"
+      xmlns:ui="http://java.sun.com/jsf/facelets">
+   <h:head><title>title</title></h:head>
+   <body>
+      <ui:composition template="#{employeeBean.template()}">
+         <ui:define name="windowTitle">
+         	#{msgs.headerSheets}
+         </ui:define>
+      
+         <ui:define name="content">
+            <p>You can only have one timesheet for a given week.</p>
+         </ui:define>
+      </ui:composition>
+   </body>
+</html>

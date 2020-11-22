@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml"
+      xmlns:f="http://java.sun.com/jsf/core"
+      xmlns:h="http://java.sun.com/jsf/html"
+      xmlns:ui="http://java.sun.com/jsf/facelets">
+   <h:head><title>title</title></h:head>
+   <body>
+      <ui:composition template="/templates/userLayout.xhtml">
+         <ui:define name="windowTitle">
+         	#{msgs.welcome}
+         </ui:define>
+      
+         <ui:define name="content">
+         	<h3 class ="center">#{msgs.welcome} #{employeeBean.userName}</h3>
+         </ui:define>
+      </ui:composition>
+   </body>
+</html>

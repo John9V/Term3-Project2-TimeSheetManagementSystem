@@ -1,0 +1,42 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml"
+      xmlns:f="http://java.sun.com/jsf/core"
+      xmlns:h="http://java.sun.com/jsf/html"
+      xmlns:ui="http://java.sun.com/jsf/facelets">
+   <h:head><title>title</title></h:head>
+   <body>
+      <ui:composition template="#{employeeBean.template()}">
+         <ui:define name="windowTitle">
+         	#{msgs.headerCreateUser}
+         </ui:define>
+      
+         <ui:define name="content">
+            <h:form>
+         		<h1 class="header">#{msgs.headerCreateUser}</h1>
+         		
+         		<div class="field">
+         			<h3>#{msgs.empName}</h3>
+         			<h:inputText value="#{createEmployeeBean.name}" />
+         		</div>
+         		<div class="field">
+         			<h3>#{msgs.empUsername}</h3>
+		 			<h:inputText value="#{createEmployeeBean.userName}"/>
+		 		</div>
+		 		<div class="field">
+		 			<h3>#{msgs.empPwd}</h3>
+		 			<h:inputText value="#{createEmployeeBean.password}"/>
+		 		</div>
+		 		<div class="field">
+		 		<h3>#{msgs.empIsAdmin}</h3>
+		 		<h:selectBooleanCheckbox value="#{createEmployeeBean.admin}" onclick="submit()" />
+		 		</div>
+		 		
+		 		<div class="editPasswordButtonContainer">
+		 			<h:commandButton value="#{msgs.add}" action="#{createEmployeeBean.addEmployee}" actionListener = "#{createEmployeeBean.addCredential}"/>
+		 		</div>
+      		</h:form>
+         </ui:define>
+      </ui:composition>
+   </body>
+</html>

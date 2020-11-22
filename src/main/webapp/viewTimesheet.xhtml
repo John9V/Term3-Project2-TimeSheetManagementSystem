@@ -1,0 +1,158 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"  
+"http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml"
+      xmlns:f="http://java.sun.com/jsf/core" 
+      xmlns:h="http://java.sun.com/jsf/html"
+      xmlns:ui="http://java.sun.com/jsf/facelets">
+   <h:head><title>title</title></h:head>
+   <body>
+      <ui:composition template="#{employeeBean.template()}">
+         <ui:define name="windowTitle">
+         	#{msgs.headerSheet}
+         </ui:define>
+      
+         <ui:define name="content">
+            <h1 class="header">#{msgs.headerSheet}</h1>
+      
+      		<div class="main">
+      		
+      			
+      			
+      			<h:form>
+      			<div class="timesheetInfo">
+      				<p><b>#{msgs.sheetInfoENumber}</b> #{timeSheetBean.t.employee.empNumber}</p>
+      				<p><b>#{msgs.sheetInfoName}</b> #{timeSheetBean.t.employee.name}</p>
+      				<p><b>#{msgs.sheetInfoWeek}</b> #{timeSheetBean.t.endWeek}</p>
+      				<p><b>#{msgs.sheetInfoWeekEdit} </b><h:inputText value="#{timeSheetBean.ld}">  
+   						<f:convertDateTime pattern="yyyy-MM-dd"/>  
+					</h:inputText></p>
+      			</div>
+					<h:dataTable value = "#{rowListBean.getRows(timeSheetBean.t)}" var = "row"
+						styleClass="table" rowClasses="odd,even" headerClass="tableHeading">
+	
+						<h:column>
+         					<f:facet name="header">
+      							<h:outputText value="#{msgs.edit}" />
+      						</f:facet>
+   							<h:selectBooleanCheckbox value="#{row.editable}" onclick="submit()" />
+       					</h:column>
+         	
+       					<p>Date</p><h:column>
+       						<f:facet name="header">
+   								<h:outputText value="#{msgs.delete}" />
+   							</f:facet>
+   							<h:selectBooleanCheckbox value="#{row.deletable}" onclick="submit()" />
+       					</h:column>
+
+   						<h:column>    				
+      						<f:facet name = "header">#{msgs.project}</f:facet>
+      						<h:outputText rendered="#{not row.editable}" value="#{row.projectID}" />
+      						<h:inputText type="number" id="projID" rendered="#{row.editable}" value="#{row.projectID}">
+      							<f:validateLongRange minimum="0" maximum="999999999" />
+      						</h:inputText>
+      						<h:message for="projID" style = "color:red" />
+   						</h:column>
+   		
+   						<h:column>    				
+      						<f:facet name = "header">WP</f:facet>
+      						<h:outputText rendered="#{not row.editable}" value="#{row.workPackage}" />
+      						<h:inputText id="wp" rendered="#{row.editable}" value="#{row.workPackage}" />
+      						<h:message for="wp" style = "color:red" />
+   						</h:column>
+   		
+   						<h:column>    				
+      						<f:facet name = "header">#{msgs.total}</f:facet>
+      						<h:outputText value="#{row.getSum()}" />
+   						</h:column>
+   		
+   						<h:column>    				
+      						<f:facet name = "header">#{msgs.sat}</f:facet>
+      						<h:outputText rendered="#{not row.editable}" value="#{row.hoursForWeek[0]}" />
+      						<h:inputText id="sat" rendered="#{row.editable}" value="#{row.hoursForWeek[0]}">
+      							<f:validateLongRange minimum="0" maximum="24" />
+      							<f:validator validatorId="ca.bcit.infosys.timesheet.HoursValidator" />
+      						</h:inputText>
+      						<h:message for="sat" style = "color:red" />
+   						</h:column>
+   		
+   						<h:column>    				
+      						<f:facet name = "header">#{msgs.sun}</f:facet>
+      						<h:outputText rendered="#{not row.editable}" value="#{row.hoursForWeek[1]}" />
+      						<h:inputText id="sun" rendered="#{row.editable}" value="#{row.hoursForWeek[1]}">
+      							<f:validateLongRange minimum="0" maximum="24" />
+      							<f:validator validatorId="ca.bcit.infosys.timesheet.HoursValidator" />
+      						</h:inputText>
+      						<h:message for="sun" style = "color:red" />
+   						</h:column>
+   		
+   						<h:column>    				
+      						<f:facet name = "header">#{msgs.mon}</f:facet>
+      						<h:outputText rendered="#{not row.editable}" value="#{row.hoursForWeek[2]}" />
+      						<h:inputText id="mon" rendered="#{row.editable}" value="#{row.hoursForWeek[2]}">
+      							<f:validateLongRange minimum="0" maximum="24" />
+      							<f:validator validatorId="ca.bcit.infosys.timesheet.HoursValidator" />
+      						</h:inputText>
+      						<h:message for="mon" style = "color:red" />
+   						</h:column>
+   		
+   						<h:column>    				
+      						<f:facet name = "header">#{msgs.tue}</f:facet>
+      						<h:outputText rendered="#{not row.editable}" value="#{row.hoursForWeek[3]}" />
+      						<h:inputText id="tue" rendered="#{row.editable}" value="#{row.hoursForWeek[3]}">
+      							<f:validateLongRange minimum="0" maximum="24" />
+      							<f:validator validatorId="ca.bcit.infosys.timesheet.HoursValidator" />
+      						</h:inputText>
+      						<h:message for="tue" style = "color:red" />
+   						</h:column>
+   		
+   						<h:column>    				
+      						<f:facet name = "header">#{msgs.wed}</f:facet>
+      						<h:outputText rendered="#{not row.editable}" value="#{row.hoursForWeek[4]}" />
+      						<h:inputText id="wed" rendered="#{row.editable}" value="#{row.hoursForWeek[4]}">
+      							<f:validateLongRange minimum="0" maximum="24" />
+      							<f:validator validatorId="ca.bcit.infosys.timesheet.HoursValidator" />
+      						</h:inputText>
+      						<h:message for="wed" style = "color:red" />
+   						</h:column>
+   		
+   						<h:column>    				
+      						<f:facet name = "header">#{msgs.thu}</f:facet>
+      						<h:outputText rendered="#{not row.editable}" value="#{row.hoursForWeek[5]}" />
+      						<h:inputText id="thu" rendered="#{row.editable}" value="#{row.hoursForWeek[5]}">
+      							<f:validateLongRange minimum="0" maximum="24" />
+      							<f:validator validatorId="ca.bcit.infosys.timesheet.HoursValidator" />
+      						</h:inputText>
+      						<h:message for="thu" style = "color:red" />
+   						</h:column>
+   		
+   						<h:column>    				
+      						<f:facet name = "header">#{msgs.fri}</f:facet>
+      						<h:outputText rendered="#{not row.editable}" value="#{row.hoursForWeek[6]}" />
+      						<h:inputText id="fri" rendered="#{row.editable}" value="#{row.hoursForWeek[6]}">
+      							<f:validateLongRange minimum="0" maximum="24" />
+      							<f:validator validatorId="ca.bcit.infosys.timesheet.HoursValidator" />
+      						</h:inputText>
+      						<h:message for="fri" style = "color:red" />
+   						</h:column>
+   		
+   						<h:column>    				
+      						<f:facet name = "header">#{msgs.notes}</f:facet>
+      						<h:outputText rendered="#{not row.editable}" value="#{row.notes}" />
+      						<h:inputText rendered="#{row.editable}" value="#{row.notes}" />
+   						</h:column>
+					</h:dataTable>
+	
+					<div class="editTableButtons">
+						<h:commandButton action="#{timeSheetBean.addRowFromBean()}" value="Add Row" />
+						<h:commandButton action="#{rowListBean.save(timeSheetBean.t)}" value="Save edit"/>
+						<h:commandButton action="timesheetList" value="#{msgs.back}"/>
+					</div>
+	
+				</h:form>
+      		</div>
+      		
+         </ui:define>
+      </ui:composition>
+   </body>
+</html>
