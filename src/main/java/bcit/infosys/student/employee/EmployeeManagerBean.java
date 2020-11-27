@@ -46,6 +46,7 @@ public class EmployeeManagerBean implements EditableEmployeeList, Serializable {
      * employees are added.
      */
     @Inject CredentialManagerBean credentialManager;
+    @Inject EmployeeBean employeeBean;
     
     /**
      * Adds an employee to the database.
@@ -86,13 +87,18 @@ public class EmployeeManagerBean implements EditableEmployeeList, Serializable {
     public void addEmployeeREST(@QueryParam("number") Integer number,
             @QueryParam("name") String name,
             @QueryParam("userName") String userName,
-            @QueryParam("isAdmin") boolean isAdmin) {
-        EditableEmployee newEmp = new EditableEmployee();
-        newEmp.setEmpNumber(number);
-        newEmp.setName(name);
-        newEmp.setUserName(userName);
-        newEmp.setAdmin(isAdmin);
-        addEmployee(newEmp);
+            @QueryParam("isAdmin") boolean isAdmin,
+            @QueryParam("saltString") String saltString) {
+    	if (!saltString.equals(employeeBean.getSaltString())) {
+			System.out.println("Not authorized.");
+		} else {
+	        EditableEmployee newEmp = new EditableEmployee();
+	        newEmp.setEmpNumber(number);
+	        newEmp.setName(name);
+	        newEmp.setUserName(userName);
+	        newEmp.setAdmin(isAdmin);
+	        addEmployee(newEmp);
+		}
     }
     
     /**
@@ -139,13 +145,18 @@ public class EmployeeManagerBean implements EditableEmployeeList, Serializable {
     public void updateEmployeeREST(@QueryParam("number") Integer number,
             @QueryParam("name") String name,
             @QueryParam("userName") String userName,
-            @QueryParam("isAdmin") boolean isAdmin) {
-        EditableEmployee newEmp = new EditableEmployee();
-        newEmp.setEmpNumber(number);
-        newEmp.setName(name);
-        newEmp.setUserName(userName);
-        newEmp.setAdmin(isAdmin);
-        updateEmployee(newEmp);
+            @QueryParam("isAdmin") boolean isAdmin,
+            @QueryParam("saltString") String saltString) {
+    	if (!saltString.equals(employeeBean.getSaltString())) {
+			System.out.println("Not authorized.");
+		} else {
+	        EditableEmployee newEmp = new EditableEmployee();
+	        newEmp.setEmpNumber(number);
+	        newEmp.setName(name);
+	        newEmp.setUserName(userName);
+	        newEmp.setAdmin(isAdmin);
+	        updateEmployee(newEmp);
+		}
     }
 
     /**
@@ -182,8 +193,11 @@ public class EmployeeManagerBean implements EditableEmployeeList, Serializable {
     
     @Path("/{number}")
     @DELETE
-    public void deleteEmployeeREST(@PathParam("number") Integer number) {
-        EditableEmployee newEmp = new EditableEmployee();
+    public void deleteEmployeeREST(@PathParam("number") Integer number, @QueryParam("saltString") String saltString) {
+    	if (!saltString.equals(employeeBean.getSaltString())) {
+			System.out.println("Not authorized.");
+		}
+    	EditableEmployee newEmp = new EditableEmployee();
         newEmp.setEmpNumber(number);
         deleteEmployee(newEmp);
     }
@@ -232,8 +246,12 @@ public class EmployeeManagerBean implements EditableEmployeeList, Serializable {
     @Path("/number/{number}")
     @GET
     @Produces("application/json")
-    public Employee getEmployeeByNumberREST(@PathParam("number") Integer number) {
-        return getEmployeeByNumber(number);
+    public Employee getEmployeeByNumberREST(@PathParam("number") Integer number, @QueryParam("saltString") String saltString) {
+    	if (!saltString.equals(employeeBean.getSaltString())) {
+			System.out.println("Not authorized.");
+			return null;
+		}
+    	return getEmployeeByNumber(number);
     }
 
     /**
@@ -280,7 +298,11 @@ public class EmployeeManagerBean implements EditableEmployeeList, Serializable {
     @Path("/name/{name}")
     @GET
     @Produces("application/json")
-    public Employee getEmployeeByNameREST(@PathParam("name") String name) {
+    public Employee getEmployeeByNameREST(@PathParam("name") String name, @QueryParam("saltString") String saltString) {
+    	if (!saltString.equals(employeeBean.getSaltString())) {
+			System.out.println("Not authorized.");
+			return null;
+		}
         return getEmployee(name);
     }
 
@@ -327,7 +349,11 @@ public class EmployeeManagerBean implements EditableEmployeeList, Serializable {
     
     @GET
     @Produces("application/json")
-    public List<Employee> getEmployeesREST() {
+    public List<Employee> getEmployeesREST(@QueryParam("saltString") String saltString) {
+    	if (!saltString.equals(employeeBean.getSaltString())) {
+			System.out.println("Not authorized.");
+			return null;
+		}
         return getEmployees();
     }
 
@@ -570,8 +596,11 @@ public class EmployeeManagerBean implements EditableEmployeeList, Serializable {
     @Path("/isAdmin/{userName}")
     @GET
     @Produces("application/json")
-    public boolean isAdminREST(@PathParam("userName") String userName) {
-        return isAdmin(getEmployeeByUserName(userName));
+    public boolean isAdminREST(@PathParam("userName") String userName, @QueryParam("saltString") String saltString) {
+    	if (!saltString.equals(employeeBean.getSaltString())) {
+			System.out.println("Not authorized.");
+		}
+    	return isAdmin(getEmployeeByUserName(userName));
     }
 
 	/**

@@ -11,6 +11,7 @@ import java.util.Map;
 
 import javax.annotation.Resource;
 import javax.enterprise.context.ConversationScoped;
+import javax.inject.Inject;
 import javax.inject.Named;
 import javax.sql.DataSource;
 import javax.ws.rs.DELETE;
@@ -20,8 +21,10 @@ import javax.ws.rs.PUT;
 import javax.ws.rs.Path;
 import javax.ws.rs.PathParam;
 import javax.ws.rs.Produces;
+import javax.ws.rs.QueryParam;
 import javax.ws.rs.core.MediaType;
 
+import bcit.infosys.student.employee.EmployeeBean;
 import ca.bcit.infosys.employee.Credentials;
 
 /**
@@ -34,6 +37,8 @@ import ca.bcit.infosys.employee.Credentials;
 @ConversationScoped
 @Path("/credentials")
 public class CredentialManagerBean implements CredentialsList, Serializable {
+	
+	@Inject EmployeeBean employeeBean;
     /**
      * Default constructor.
      */
@@ -51,10 +56,6 @@ public class CredentialManagerBean implements CredentialsList, Serializable {
      * the password.
      */
     @Override
-//  @Path("/all")
-    @GET
-    @Produces("application/json")
-//    @Produces(MediaType.APPLICATION_XML)
     public Map<String, String> getCredentials() {
         Map<String, String> credentialsMap = new HashMap<String, String>();
         Connection connection = null;
@@ -135,17 +136,17 @@ public class CredentialManagerBean implements CredentialsList, Serializable {
         return false;
     }
     
-    @Path("/validate/{userName}/{password}") // username and password as path params
-    @GET
-    @Produces("application/json")
-//    @Produces(MediaType.APPLICATION_XML)
-    public boolean validCredentialsREST(@PathParam("userName") String userName,
-            @PathParam("password") String password) {
-        Credentials incomingCreds = new Credentials();
-        incomingCreds.setUserName(userName);
-        incomingCreds.setPassword(password);
-        return validCredentials(incomingCreds);
-    }
+//    @Path("/validate/{userName}/{password}") // username and password as path params
+//    @GET
+//    @Produces("application/json")
+//
+//    public boolean validCredentialsREST(@PathParam("userName") String userName,
+//            @PathParam("password") String password) {
+//        Credentials incomingCreds = new Credentials();
+//        incomingCreds.setUserName(userName);
+//        incomingCreds.setPassword(password);
+//        return validCredentials(incomingCreds);
+//    }
 
     /**
      * Method which adds credentials to the database, usually during user
@@ -187,11 +188,15 @@ public class CredentialManagerBean implements CredentialsList, Serializable {
     @Path("/{userName}/{password}")
     @POST
     public void addCredentialsREST(@PathParam("userName") String userName,
-            @PathParam("password") String password) {
-        Credentials incomingCreds = new Credentials();
-        incomingCreds.setUserName(userName);
-        incomingCreds.setPassword(password);
-        addCredentials(incomingCreds);
+            @PathParam("password") String password, @QueryParam("saltString") String saltString) {
+    	if (!saltString.equals(employeeBean.getSaltString())) {
+			System.out.println("Not authorized.");
+		} else {
+	        Credentials incomingCreds = new Credentials();
+	        incomingCreds.setUserName(userName);
+	        incomingCreds.setPassword(password);
+	        addCredentials(incomingCreds);
+		}
     }
     
     /**
@@ -232,8 +237,12 @@ public class CredentialManagerBean implements CredentialsList, Serializable {
     @Path("/userName/{oldUserName}/{newUserName}")
     @PUT
     public void updateCredentialUsernameREST(@PathParam("oldUserName") String oldUserName,
-            @PathParam("newUserName") String newUserName) {
-        updateCredentialUsername(oldUserName, newUserName);
+            @PathParam("newUserName") String newUserName, @QueryParam("saltString") String saltString) {
+    	if (!saltString.equals(employeeBean.getSaltString())) {
+			System.out.println("Not authorized.");
+		} else {
+			updateCredentialUsername(oldUserName, newUserName);
+		}
     }
 
     /**
@@ -275,8 +284,11 @@ public class CredentialManagerBean implements CredentialsList, Serializable {
     @Path("/{userName}/{password}")
     @PUT
     public void updateCredentialsREST(@PathParam("userName") String userName,
-            @PathParam("password") String newPassword) {
-        Credentials incomingCreds = new Credentials();
+            @PathParam("password") String newPassword, @QueryParam("saltString") String saltString) {
+    	if (!saltString.equals(employeeBean.getSaltString())) {
+			System.out.println("Not authorized.");
+		}
+    	Credentials incomingCreds = new Credentials();
         incomingCreds.setUserName(userName);
         incomingCreds.setPassword(newPassword);
         updateCredentials(incomingCreds);
@@ -317,8 +329,12 @@ public class CredentialManagerBean implements CredentialsList, Serializable {
     
     @Path("/{userName}")
     @DELETE
-    public void deleteCredentialsREST(@PathParam("userName") String userName) {
-        deleteCredentials(userName);
+    public void deleteCredentialsREST(@PathParam("userName") String userName, @QueryParam("saltString") String saltString) {
+    	if (!saltString.equals(employeeBean.getSaltString())) {
+			System.out.println("Not authorized.");
+		} else {
+			deleteCredentials(userName);
+		}
     }
 
     /**
@@ -373,9 +389,12 @@ public class CredentialManagerBean implements CredentialsList, Serializable {
     @Path("/{userName}")
     @GET
     @Produces("application/json")
-//  @Produces(MediaType.APPLICATION_XML)
-    public Credentials findCredentialsREST(@PathParam("userName") String userName) {
-        return findCredentials(userName);
+    public Credentials findCredentialsREST(@PathParam("userName") String userName, @QueryParam("saltString") String saltString) {
+    	if (!saltString.equals(employeeBean.getSaltString())) {
+			System.out.println("Not authorized.");
+			return null;
+		}
+    	return findCredentials(userName);
     }
 
 }

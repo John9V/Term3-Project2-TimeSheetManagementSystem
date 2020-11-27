@@ -11,10 +11,12 @@ import javax.ws.rs.PathParam;
 import javax.ws.rs.Produces;
 import javax.ws.rs.QueryParam;
 
+import bcit.infosys.student.employee.EmployeeBean;
 import bcit.infosys.student.timesheet.EditableTimesheet;
 
 import javax.annotation.Resource;
 import javax.enterprise.context.ConversationScoped;
+import javax.inject.Inject;
 import javax.inject.Named;
 import java.io.Serializable;
 import java.math.BigDecimal;
@@ -40,11 +42,17 @@ public class RowManagerBean implements Serializable {
 	 */
 	@Resource(mappedName = "java:jboss/datasources/MySQLDS")
 	private DataSource dataSource;
+	@Inject EmployeeBean employeeBean;
 	
 	@Path("/number/{saltString}/{timesheetNum}")
     @GET
     @Produces("application/json")
 	public List<EditableTimesheetRow> getRowsREST(@PathParam("saltString") String saltString, @PathParam("timesheetNum") Integer timesheetNum) {
+		if (!saltString.equals(employeeBean.getSaltString())) {
+			System.out.println("Not authorized.");
+			return null;
+		}
+		
 		EditableTimesheet t = new EditableTimesheet();
 		t.setTimesheetId(timesheetNum);
 		List<EditableTimesheetRow> rows = getRows(t);
@@ -121,21 +129,25 @@ public class RowManagerBean implements Serializable {
 			@QueryParam("thu") BigDecimal thu,
 			@QueryParam("fri") BigDecimal fri,
 			@QueryParam("notes") String notes) {
-		EditableTimesheetRow tsr = new EditableTimesheetRow();
-		tsr.setRowId(rowId);
-		tsr.setProjectID(projectId);
-		tsr.setNotes(notes);
-		tsr.setWorkPackage(wp);
-		BigDecimal[] arr = tsr.getHoursForWeek();
-		arr[0] = sat;
-		arr[1] = sun;
-		arr[2] = mon;
-		arr[3] = tue;
-		arr[4] = wed;
-		arr[5] = thu;
-		arr[6] = fri;
-		tsr.setHoursForWeek(arr);
-		updateRow(tsr);
+		if (!saltString.equals(employeeBean.getSaltString())) {
+			System.out.println("Not authorized.");
+		} else {
+			EditableTimesheetRow tsr = new EditableTimesheetRow();
+			tsr.setRowId(rowId);
+			tsr.setProjectID(projectId);
+			tsr.setNotes(notes);
+			tsr.setWorkPackage(wp);
+			BigDecimal[] arr = tsr.getHoursForWeek();
+			arr[0] = sat;
+			arr[1] = sun;
+			arr[2] = mon;
+			arr[3] = tue;
+			arr[4] = wed;
+			arr[5] = thu;
+			arr[6] = fri;
+			tsr.setHoursForWeek(arr);
+			updateRow(tsr);
+		}
 	}
 	
 	/**
@@ -198,9 +210,13 @@ public class RowManagerBean implements Serializable {
 	@Path("/delete/{saltString}/{number}")
     @DELETE
 	public void deleteRow(@PathParam("saltString") String saltString, @PathParam("number") Integer number) {
-		EditableTimesheetRow tsr = new EditableTimesheetRow();
-		tsr.setRowId(number);
-		deleteRow(tsr);
+		if (!saltString.equals(employeeBean.getSaltString())) {
+			System.out.println("Not authorized.");
+		} else {
+			EditableTimesheetRow tsr = new EditableTimesheetRow();
+			tsr.setRowId(number);
+			deleteRow(tsr);
+		}
 	}
 	
 	/**
@@ -250,20 +266,24 @@ public class RowManagerBean implements Serializable {
 			@QueryParam("notes") String notes,
 			@QueryParam("sheedId") String sheetId
 			) {
-		EditableTimesheetRow tsr = new EditableTimesheetRow();
-		tsr.setProjectID(projectId);
-		tsr.setNotes(notes);
-		tsr.setWorkPackage(wp);
-		BigDecimal[] arr = tsr.getHoursForWeek();
-		arr[0] = sat;
-		arr[1] = sun;
-		arr[2] = mon;
-		arr[3] = tue;
-		arr[4] = wed;
-		arr[5] = thu;
-		arr[6] = fri;
-		tsr.setHoursForWeek(arr);
-		addTimesheetRow(tsr);
+		if (!saltString.equals(employeeBean.getSaltString())) {
+			System.out.println("Not authorized.");
+		} else {
+			EditableTimesheetRow tsr = new EditableTimesheetRow();
+			tsr.setProjectID(projectId);
+			tsr.setNotes(notes);
+			tsr.setWorkPackage(wp);
+			BigDecimal[] arr = tsr.getHoursForWeek();
+			arr[0] = sat;
+			arr[1] = sun;
+			arr[2] = mon;
+			arr[3] = tue;
+			arr[4] = wed;
+			arr[5] = thu;
+			arr[6] = fri;
+			tsr.setHoursForWeek(arr);
+			addTimesheetRow(tsr);
+		}
 	}
 	
 	/**
@@ -280,6 +300,7 @@ public class RowManagerBean implements Serializable {
                 	int id = tsr.getProjectID();
                 	BigDecimal bigd = new BigDecimal(0);
                 	
+                	String wp = "WPKG";
                 	BigDecimal[] arr = tsr.getHoursForWeek();
                 	BigDecimal sat = bigd;
                 	BigDecimal sun = bigd;
@@ -296,6 +317,7 @@ public class RowManagerBean implements Serializable {
                     	wed = arr[4];
                     	thu = arr[5];
                     	fri = arr[6];
+                    	wp = tsr.getWorkPackage();
                 	}
                 	
                 	int sheetId = tsr.getOwnerSheetId();
@@ -308,7 +330,7 @@ public class RowManagerBean implements Serializable {
                             + " Sun, Mon, Tue, Wed, Thu, Fri, Notes, sheet_id) "
                          + "VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)");
                     stmt.setInt(1, id);
-                    stmt.setString(2, "WPKG");
+                    stmt.setString(2, wp);
                     stmt.setBigDecimal(3, sat);
                     stmt.setBigDecimal(4, sun);
                     stmt.setBigDecimal(5, mon);

@@ -7,8 +7,10 @@ import java.sql.Date;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
+import java.time.DayOfWeek;
 import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
+import java.time.temporal.TemporalAdjusters;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -48,7 +50,7 @@ public class TimesheetManagerBean implements Serializable {
 	@Inject EmployeeBean employeeBean;
 	
 	/**
-	 * Gets a list of timesheets for a given employee.
+	 * Gets a list of timesheets for a given employee as a restful service.
 	 * @param e the employee to get timesheets for.
 	 * @return a list of timesheets associated with the passed in employee.
 	 */
@@ -56,6 +58,10 @@ public class TimesheetManagerBean implements Serializable {
     @GET
     @Produces("application/json")
 	public List<EditableTimesheet> getTimesheetsREST(@PathParam("saltString") String saltString, @PathParam("employeeNumber") Integer employeeNumber) {
+		if (!saltString.equals(employeeBean.getSaltString())) {
+			System.out.println("Not authorized.");
+			return null;
+		}
 		ArrayList<EditableTimesheet> sheetList = new
 		        ArrayList<EditableTimesheet>();
 		System.out.println("Injected saltString: " + employeeBean.getSaltString());
@@ -205,16 +211,22 @@ public class TimesheetManagerBean implements Serializable {
 			@QueryParam("ot") BigDecimal ot,
 			@QueryParam("ft") BigDecimal ft,
 			@PathParam("sheetId") Integer sheetId) {
-		EditableTimesheet t = new EditableTimesheet();
-		t.setOvertime(ot);
-		t.setFlextime(ft);
-		t.setTimesheetId(sheetId);
-		EditableEmployee e = employeeManager.getEmployeeByNumber(empNum);
-		t.setEmployee(e);
-		DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd");
-		LocalDate localDate = LocalDate.parse(endWeek, formatter);
-		t.setEndWeek(localDate);
-		updateTimesheet(t);
+		if (!saltString.equals(employeeBean.getSaltString())) {
+			System.out.println("Not authorized.");
+		} else {
+			EditableTimesheet t = new EditableTimesheet();
+			t.setOvertime(ot);
+			t.setFlextime(ft);
+			t.setTimesheetId(sheetId);
+			EditableEmployee e = employeeManager.getEmployeeByNumber(empNum);
+			t.setEmployee(e);
+			DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd");
+			LocalDate localDate = LocalDate.parse(endWeek, formatter);
+			localDate = localDate.with(TemporalAdjusters
+			        .nextOrSame(DayOfWeek.FRIDAY));
+			t.setEndWeek(localDate);
+			updateTimesheet(t);
+		}
 	}
 	
 	@Path("/addTimesheet/{saltString}")
@@ -223,15 +235,21 @@ public class TimesheetManagerBean implements Serializable {
 			@QueryParam("endWeek") String endWeek,
 			@QueryParam("ot") BigDecimal ot,
 			@QueryParam("ft") BigDecimal ft) {
-		EditableTimesheet t = new EditableTimesheet();
-		t.setOvertime(ot);
-		t.setFlextime(ft);
-		EditableEmployee e = employeeManager.getEmployeeByNumber(empNum);
-		t.setEmployee(e);
-		DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd");
-		LocalDate localDate = LocalDate.parse(endWeek, formatter);
-		t.setEndWeek(localDate);
-		addTimesheet(t);
+		if (!saltString.equals(employeeBean.getSaltString())) {
+			System.out.println("Not authorized.");
+		} else {
+			EditableTimesheet t = new EditableTimesheet();
+			t.setOvertime(ot);
+			t.setFlextime(ft);
+			EditableEmployee e = employeeManager.getEmployeeByNumber(empNum);
+			t.setEmployee(e);
+			DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd");
+			LocalDate localDate = LocalDate.parse(endWeek, formatter);
+			localDate = localDate.with(TemporalAdjusters
+			        .nextOrSame(DayOfWeek.FRIDAY));
+			t.setEndWeek(localDate);
+			addTimesheet(t);
+		}
 	}
 	
 	/**
