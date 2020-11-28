@@ -35,6 +35,9 @@ public class EmployeeBean extends EditableEmployee implements Serializable {
 	 */
 	@Inject CredentialManagerBean credentialManager;
 	
+	/**
+	 * authentication identifier.
+	 */
 	String saltString;
 	
 	/**
@@ -88,10 +91,18 @@ public class EmployeeBean extends EditableEmployee implements Serializable {
 		return userName;
 	}
 	
+	/**
+	 * Getter for the salt string.
+	 * @return the salt string
+	 */
 	public String getSaltString() {
 		return saltString;
 	}
 
+	/**
+	 * Setter for the salt string.
+	 * @param saltString
+	 */
 	public void setSaltString(String saltString) {
 		this.saltString = saltString;
 	}
@@ -149,22 +160,36 @@ public class EmployeeBean extends EditableEmployee implements Serializable {
 		}
 	}
 	
+	/**
+	 * Generates and returns a randomly generated salt string for
+	 * authentication.
+	 * @return a new salt string
+	 */
 	protected String generateSaltString() {
-        String SALTCHARS = "ABCDEFGHIJKLMNOPQRSTUVWXYZ1234567890";
+        String saltChars = "ABCDEFGHIJKLMNOPQRSTUVWXYZ1234567890";
         StringBuilder salt = new StringBuilder();
         Random rnd = new Random();
         while (salt.length() < 18) { // length of the random string.
-            int index = (int) (rnd.nextFloat() * SALTCHARS.length());
-            salt.append(SALTCHARS.charAt(index));
+            int index = (int) (rnd.nextFloat() * saltChars.length());
+            salt.append(saltChars.charAt(index));
         }
         String saltStr = salt.toString();
         return saltStr;
     }
 	
+	/**
+	 * REST endpoint for logging in.
+	 * @param userName the path parameter for the user's user name to
+	 * log in with
+	 * @param password the path parameter for the user's password to
+	 * log in with
+	 * @return the generated authentication salt string
+	 */
 	@Path("/{userName}/{password}")
     @GET
     @Produces("application/json")
-	public String loginREST(@PathParam("userName") String userName, @PathParam("password") String password) {
+	public String loginREST(@PathParam("userName") String userName,
+	        @PathParam("password") String password) {
 		System.out.println("running" + userName + password);
 		Credentials c = new Credentials();
 		c.setUserName(userName);

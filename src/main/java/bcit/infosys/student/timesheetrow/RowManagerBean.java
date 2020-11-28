@@ -27,7 +27,7 @@ import java.sql.SQLException;
 import java.util.ArrayList;
 
 /**
- * Class which interacts with the database for the timesheet rows of 
+ * Class which interacts with the database for the timesheet rows of
  * our timesheet system.
  * @author Ivan Vaganov
  * @author Scott Reid
@@ -42,12 +42,24 @@ public class RowManagerBean implements Serializable {
 	 */
 	@Resource(mappedName = "java:jboss/datasources/MySQLDS")
 	private DataSource dataSource;
+	
+	/**
+	 * Used for authentication with a salt string.
+	 */
 	@Inject EmployeeBean employeeBean;
 	
+	/**
+	 * REST endpoint for getting all rows in a timesheet.
+	 * @param saltString the authentication salt string path parameter
+	 * @param timesheetNum the path parameter for the timesheet number
+	 * @return a list of editable timesheet rows
+	 */
 	@Path("/number/{saltString}/{timesheetNum}")
     @GET
     @Produces("application/json")
-	public List<EditableTimesheetRow> getRowsREST(@PathParam("saltString") String saltString, @PathParam("timesheetNum") Integer timesheetNum) {
+	public List<EditableTimesheetRow> getRowsREST(
+	        @PathParam("saltString") String saltString,
+	        @PathParam("timesheetNum") Integer timesheetNum) {
 		if (!saltString.equals(employeeBean.getSaltString())) {
 			System.out.println("Not authorized.");
 			return null;
@@ -116,9 +128,25 @@ public class RowManagerBean implements Serializable {
 		return rowList;
 	}
 	
+	/**
+	 * REST endpoint for updating a timesheet row.
+	 * @param saltString the authentication salt string path parameter
+	 * @param rowId path parameter for the row ID
+	 * @param projectId query parameter for the project ID
+	 * @param wp query parameter for the work package
+	 * @param sat Saturday query parameter
+	 * @param sun Sunday query parameter
+	 * @param mon Monday query parameter
+	 * @param tue Tuesday query parameter
+	 * @param wed Wednesday query parameter
+	 * @param thu Thursday query parameter
+	 * @param fri Friday query parameter
+	 * @param notes query parameted for the notes
+	 */
 	@Path("/updateRow/{saltString}/{rowId}")
 	@PUT
-	public void updateRowREST(@PathParam("saltString") String saltString, @PathParam("rowId") Integer rowId, 
+	public void updateRowREST(@PathParam("saltString") String saltString,
+	        @PathParam("rowId") Integer rowId, 
 			@QueryParam("projectId") Integer projectId,
 			@QueryParam("wp") String wp,
 			@QueryParam("sat") BigDecimal sat,
@@ -207,9 +235,15 @@ public class RowManagerBean implements Serializable {
         }
 	}
 	
+	/**
+	 * REST endpoint for deleting a row.
+	 * @param saltString the authentication salt string path parameter
+	 * @param number path parameter for the row number to delete
+	 */
 	@Path("/delete/{saltString}/{number}")
     @DELETE
-	public void deleteRow(@PathParam("saltString") String saltString, @PathParam("number") Integer number) {
+	public void deleteRow(@PathParam("saltString") String saltString,
+	        @PathParam("number") Integer number) {
 		if (!saltString.equals(employeeBean.getSaltString())) {
 			System.out.println("Not authorized.");
 		} else {
@@ -220,7 +254,7 @@ public class RowManagerBean implements Serializable {
 	}
 	
 	/**
-	 * Method to delete a timesheet row.-
+	 * Method to delete a timesheet row.
 	 * @param tsr is the row to be deleted.
 	 */
 	public void deleteRow(EditableTimesheetRow tsr) {
@@ -251,6 +285,21 @@ public class RowManagerBean implements Serializable {
         }
 	}
 	
+	/**
+	 * REST endpoint for adding a row.
+	 * @param saltString the authentication salt string path parameter
+	 * @param projectId query parameter for the project ID
+	 * @param wp query parameter for the work package
+     * @param sat Saturday query parameter
+     * @param sun Sunday query parameter
+     * @param mon Monday query parameter
+     * @param tue Tuesday query parameter
+     * @param wed Wednesday query parameter
+     * @param thu Thursday query parameter
+     * @param fri Friday query parameter
+	 * @param notes query parameter for the notes
+	 * @param sheetId query parameter for the timesheet ID
+	 */
 	@Path("/addRow/{saltString}")
 	@POST
 	public void addRowREST(@PathParam("saltString") String saltString,
@@ -309,7 +358,7 @@ public class RowManagerBean implements Serializable {
                 	BigDecimal wed = bigd;
                 	BigDecimal thu = bigd;
                 	BigDecimal fri = bigd;
-                	if(arr != null) {
+                	if (arr != null) {
                 		sat = arr[0];
                     	sun = arr[1];
                     	mon = arr[2];
@@ -322,7 +371,7 @@ public class RowManagerBean implements Serializable {
                 	
                 	int sheetId = tsr.getOwnerSheetId();
                 	String comments = tsr.getNotes();
-                	if(comments == null) {
+                	if (comments == null) {
                 		comments = "enter comments";
                 	}
                     stmt = connection.prepareStatement(

@@ -46,6 +46,9 @@ public class EmployeeManagerBean implements EditableEmployeeList, Serializable {
      * employees are added.
      */
     @Inject CredentialManagerBean credentialManager;
+    /**
+     * Used for authentication with a salt string.
+     */
     @Inject EmployeeBean employeeBean;
     
     /**
@@ -83,6 +86,15 @@ public class EmployeeManagerBean implements EditableEmployeeList, Serializable {
         }
     }
     
+    /**
+     * REST endpoint for adding an employee.
+     * @param number query parameter for the number of the new employee
+     * @param name query parameter for the name of the new employee
+     * @param userName query parameter for the username of the new employee
+     * @param isAdmin query parameter representing if the new employee is
+     * an admin
+     * @param saltString the authentication salt string query parameter
+     */
     @POST
     public void addEmployeeREST(@QueryParam("number") Integer number,
             @QueryParam("name") String name,
@@ -141,6 +153,15 @@ public class EmployeeManagerBean implements EditableEmployeeList, Serializable {
         }
 	}
     
+    /**
+     * REST endpoint for updating an employee.
+     * @param number query parameter for the number of the new employee
+     * @param name query parameter for the name of the new employee
+     * @param userName query parameter for the username of the new employee
+     * @param isAdmin query parameter representing if the new employee is
+     * an admin
+     * @param saltString the authentication salt string query parameter
+     */
     @PUT
     public void updateEmployeeREST(@QueryParam("number") Integer number,
             @QueryParam("name") String name,
@@ -191,9 +212,15 @@ public class EmployeeManagerBean implements EditableEmployeeList, Serializable {
         }
     }
     
+    /**
+     * REST endpoint for deleting an employee.
+     * @param number the employee to delete with this number path parameter
+     * @param saltString the authentication salt string query parameter
+     */
     @Path("/{number}")
     @DELETE
-    public void deleteEmployeeREST(@PathParam("number") Integer number, @QueryParam("saltString") String saltString) {
+    public void deleteEmployeeREST(@PathParam("number") Integer number,
+            @QueryParam("saltString") String saltString) {
     	if (!saltString.equals(employeeBean.getSaltString())) {
 			System.out.println("Not authorized.");
 		}
@@ -243,10 +270,17 @@ public class EmployeeManagerBean implements EditableEmployeeList, Serializable {
         return null;
     }
     
+    /**
+     * REST endpoint for getting an employee by the employee number.
+     * @param number the path parameter for the number of employee to find
+     * @param saltString the authentication salt string query parameter
+     * @return the employee
+     */
     @Path("/number/{number}")
     @GET
     @Produces("application/json")
-    public Employee getEmployeeByNumberREST(@PathParam("number") Integer number, @QueryParam("saltString") String saltString) {
+    public Employee getEmployeeByNumberREST(@PathParam("number") Integer number,
+            @QueryParam("saltString") String saltString) {
     	if (!saltString.equals(employeeBean.getSaltString())) {
 			System.out.println("Not authorized.");
 			return null;
@@ -255,7 +289,7 @@ public class EmployeeManagerBean implements EditableEmployeeList, Serializable {
     }
 
     /**
-     * Gets an employee object from the database by name
+     * Gets an employee object from the database by name.
      * @param name string representing the name of the employee to find.
      * @return the employee found.
      */
@@ -295,10 +329,17 @@ public class EmployeeManagerBean implements EditableEmployeeList, Serializable {
         return null;
     }
     
+    /**
+     * REST endpoint for getting an employee by name.
+     * @param name path parameter for the name of the employee to find
+     * @param saltString the authentication salt string query parameter
+     * @return the employee
+     */
     @Path("/name/{name}")
     @GET
     @Produces("application/json")
-    public Employee getEmployeeByNameREST(@PathParam("name") String name, @QueryParam("saltString") String saltString) {
+    public Employee getEmployeeByNameREST(@PathParam("name") String name,
+            @QueryParam("saltString") String saltString) {
     	if (!saltString.equals(employeeBean.getSaltString())) {
 			System.out.println("Not authorized.");
 			return null;
@@ -347,9 +388,15 @@ public class EmployeeManagerBean implements EditableEmployeeList, Serializable {
         return employees;
     }
     
+    /**
+     * REST endpoint to get all employees.
+     * @param saltString the authentication salt string query parameter
+     * @return list of all employees
+     */
     @GET
     @Produces("application/json")
-    public List<Employee> getEmployeesREST(@QueryParam("saltString") String saltString) {
+    public List<Employee> getEmployeesREST(
+            @QueryParam("saltString") String saltString) {
     	if (!saltString.equals(employeeBean.getSaltString())) {
 			System.out.println("Not authorized.");
 			return null;
@@ -443,6 +490,12 @@ public class EmployeeManagerBean implements EditableEmployeeList, Serializable {
         return false;
     }
     
+    /**
+     * REST endpoint for verifying a user based on the username and password.
+     * @param userName path parameter for the username
+     * @param password path parameter for the password
+     * @return boolean representing if the username and password exist and match
+     */
     @Path("/verify/{userName}/{password}")
     @GET
     @Produces("application/json")
@@ -496,10 +549,16 @@ public class EmployeeManagerBean implements EditableEmployeeList, Serializable {
         return null;
     }
     
+    /**
+     * REST endpoint for getting an employee by username.
+     * @param userName path parameter for the username
+     * @return the employee
+     */
     @Path("/userName/{userName}")
     @GET
     @Produces("application/json")
-    public Employee getEmployeeByUserNameREST(@PathParam("userName") String userName) {
+    public Employee getEmployeeByUserNameREST(
+            @PathParam("userName") String userName) {
         return getEmployeeByUserName(userName);
     }
 
@@ -546,6 +605,10 @@ public class EmployeeManagerBean implements EditableEmployeeList, Serializable {
         return employees;
     }
     
+    /**
+     * REST endpoint for getting all editable employees.
+     * @return all editable employees
+     */
     @Path("/editable")
     @GET
     @Produces("application/json")
@@ -593,10 +656,18 @@ public class EmployeeManagerBean implements EditableEmployeeList, Serializable {
         return false;
     }
     
+    /**
+     * REST endpoint for checking if an employee is an administrator based
+     * on their username.
+     * @param userName path parameter for the username
+     * @param saltString the authentication salt string query parameter
+     * @return boolean representing whether the employee is an administrator
+     */
     @Path("/isAdmin/{userName}")
     @GET
     @Produces("application/json")
-    public boolean isAdminREST(@PathParam("userName") String userName, @QueryParam("saltString") String saltString) {
+    public boolean isAdminREST(@PathParam("userName") String userName,
+            @QueryParam("saltString") String saltString) {
     	if (!saltString.equals(employeeBean.getSaltString())) {
 			System.out.println("Not authorized.");
 		}

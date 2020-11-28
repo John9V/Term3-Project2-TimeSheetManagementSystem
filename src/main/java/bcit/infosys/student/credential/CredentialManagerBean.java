@@ -31,13 +31,16 @@ import ca.bcit.infosys.employee.Credentials;
  * A credential DAO for interacting with a mysql database.
  * @author Ivan Vaganov
  * @author Scott Reid
- * Nov 13 2020 version 1
+ * Nov 27 2020 version 2
  */
 @Named("credentialManagerBean")
 @ConversationScoped
 @Path("/credentials")
 public class CredentialManagerBean implements CredentialsList, Serializable {
 	
+    /**
+     * Used for authentication with a salt string.
+     */
 	@Inject EmployeeBean employeeBean;
     /**
      * Default constructor.
@@ -135,18 +138,6 @@ public class CredentialManagerBean implements CredentialsList, Serializable {
         }
         return false;
     }
-    
-//    @Path("/validate/{userName}/{password}") // username and password as path params
-//    @GET
-//    @Produces("application/json")
-//
-//    public boolean validCredentialsREST(@PathParam("userName") String userName,
-//            @PathParam("password") String password) {
-//        Credentials incomingCreds = new Credentials();
-//        incomingCreds.setUserName(userName);
-//        incomingCreds.setPassword(password);
-//        return validCredentials(incomingCreds);
-//    }
 
     /**
      * Method which adds credentials to the database, usually during user
@@ -185,10 +176,18 @@ public class CredentialManagerBean implements CredentialsList, Serializable {
         }
     }
     
+    /**
+     * REST endpoint which adds credentials to the database.
+     * @param userName the path parameter for the username for which
+     * to add the credentials
+     * @param password the path parameter for the password
+     * @param saltString the query parameter authentication string
+     */
     @Path("/{userName}/{password}")
     @POST
     public void addCredentialsREST(@PathParam("userName") String userName,
-            @PathParam("password") String password, @QueryParam("saltString") String saltString) {
+            @PathParam("password") String password,
+            @QueryParam("saltString") String saltString) {
     	if (!saltString.equals(employeeBean.getSaltString())) {
 			System.out.println("Not authorized.");
 		} else {
@@ -234,10 +233,18 @@ public class CredentialManagerBean implements CredentialsList, Serializable {
         }
     }
     
+    /**
+     * REST endpoint which updates the username.
+     * @param oldUserName the username to replace
+     * @param newUserName the new username to use
+     * @param saltString the authentication salt string
+     */
     @Path("/userName/{oldUserName}/{newUserName}")
     @PUT
-    public void updateCredentialUsernameREST(@PathParam("oldUserName") String oldUserName,
-            @PathParam("newUserName") String newUserName, @QueryParam("saltString") String saltString) {
+    public void updateCredentialUsernameREST(
+            @PathParam("oldUserName") String oldUserName,
+            @PathParam("newUserName") String newUserName,
+            @QueryParam("saltString") String saltString) {
     	if (!saltString.equals(employeeBean.getSaltString())) {
 			System.out.println("Not authorized.");
 		} else {
@@ -281,10 +288,19 @@ public class CredentialManagerBean implements CredentialsList, Serializable {
         }
     }
     
+    /**
+     * REST endpoint that updates the credential password given a username.
+     * @param userName the username path parameter for which to update
+     * the password
+     * @param newPassword the path parameter representing the new password
+     * to set
+     * @param saltString the authentication salt string query parameter
+     */
     @Path("/{userName}/{password}")
     @PUT
     public void updateCredentialsREST(@PathParam("userName") String userName,
-            @PathParam("password") String newPassword, @QueryParam("saltString") String saltString) {
+            @PathParam("password") String newPassword,
+            @QueryParam("saltString") String saltString) {
     	if (!saltString.equals(employeeBean.getSaltString())) {
 			System.out.println("Not authorized.");
 		}
@@ -327,9 +343,16 @@ public class CredentialManagerBean implements CredentialsList, Serializable {
         }
     }
     
+    /**
+     * REST endpoint that deletes credentials based on the username and
+     * salt string.
+     * @param userName the username for which to delete credentials
+     * @param saltString the authentication salt string query parameter
+     */
     @Path("/{userName}")
     @DELETE
-    public void deleteCredentialsREST(@PathParam("userName") String userName, @QueryParam("saltString") String saltString) {
+    public void deleteCredentialsREST(@PathParam("userName") String userName,
+            @QueryParam("saltString") String saltString) {
     	if (!saltString.equals(employeeBean.getSaltString())) {
 			System.out.println("Not authorized.");
 		} else {
@@ -386,10 +409,18 @@ public class CredentialManagerBean implements CredentialsList, Serializable {
         return c.getPassword() != null ? c : null;
     }
     
+    /**
+     * REST endpoint that finds credentials by username.
+     * @param userName the username path parameter
+     * @param saltString the authentication salt string query parameter
+     * @return credentials that are found
+     */
     @Path("/{userName}")
     @GET
     @Produces("application/json")
-    public Credentials findCredentialsREST(@PathParam("userName") String userName, @QueryParam("saltString") String saltString) {
+    public Credentials findCredentialsREST(
+            @PathParam("userName") String userName,
+            @QueryParam("saltString") String saltString) {
     	if (!saltString.equals(employeeBean.getSaltString())) {
 			System.out.println("Not authorized.");
 			return null;

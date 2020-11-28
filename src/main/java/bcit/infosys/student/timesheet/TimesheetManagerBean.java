@@ -46,25 +46,37 @@ public class TimesheetManagerBean implements Serializable {
 	 */
 	@Resource(mappedName = "java:jboss/datasources/MySQLDS")
 	private DataSource dataSource;
+	
+	/**
+	 * Used for getting employees by number.
+	 */
 	@Inject EmployeeManagerBean employeeManager;
+	
+	/**
+	 * Used for authentication with a salt string.
+	 */
 	@Inject EmployeeBean employeeBean;
 	
 	/**
 	 * Gets a list of timesheets for a given employee as a restful service.
-	 * @param e the employee to get timesheets for.
+	 * @param saltString the authentication salt string path parameter
+	 * @param employeeNumber the employee number to get timesheets for.
 	 * @return a list of timesheets associated with the passed in employee.
 	 */
 	@Path("/number/{saltString}/{employeeNumber}")
     @GET
     @Produces("application/json")
-	public List<EditableTimesheet> getTimesheetsREST(@PathParam("saltString") String saltString, @PathParam("employeeNumber") Integer employeeNumber) {
+	public List<EditableTimesheet> getTimesheetsREST(
+	        @PathParam("saltString") String saltString,
+	        @PathParam("employeeNumber") Integer employeeNumber) {
 		if (!saltString.equals(employeeBean.getSaltString())) {
 			System.out.println("Not authorized.");
 			return null;
 		}
 		ArrayList<EditableTimesheet> sheetList = new
 		        ArrayList<EditableTimesheet>();
-		System.out.println("Injected saltString: " + employeeBean.getSaltString());
+		System.out.println("Injected saltString: "
+		        + employeeBean.getSaltString());
 		Connection connection = null;
 		PreparedStatement stmt = null;
 		try {
@@ -84,7 +96,8 @@ public class TimesheetManagerBean implements Serializable {
 						BigDecimal ft = result.getBigDecimal("Flextime");
 						int sheetId = result.getInt("sheet_id");
 						EditableTimesheet t = new EditableTimesheet();
-						EditableEmployee e = employeeManager.getEmployeeByNumber(employeeNumber);
+						EditableEmployee e = employeeManager
+						        .getEmployeeByNumber(employeeNumber);
 						t.setEmployee(e);
 						t.setEndWeek(endWeek.toLocalDate());
 						t.setTimesheetId(sheetId);
@@ -204,9 +217,20 @@ public class TimesheetManagerBean implements Serializable {
         }
 	}
 	
+	/**
+	 * REST endpoint for updating a timesheet.
+	 * @param saltString the authentication salt string path parameter
+	 * @param empNum query parameter for the employee number
+	 * @param endWeek query parameter for the end week
+	 * @param ot query parameter for the over time
+	 * @param ft query parameter for the flex time
+	 * @param sheetId path parameter for the timesheet ID
+	 */
 	@Path("/updateTimesheet/{saltString}/{sheetId}")
 	@PUT
-	public void updateTimesheetREST(@PathParam("saltString") String saltString, @QueryParam("empNum") Integer empNum,
+	public void updateTimesheetREST(
+	        @PathParam("saltString") String saltString,
+	        @QueryParam("empNum") Integer empNum,
 			@QueryParam("endWeek") String endWeek,
 			@QueryParam("ot") BigDecimal ot,
 			@QueryParam("ft") BigDecimal ft,
@@ -218,10 +242,13 @@ public class TimesheetManagerBean implements Serializable {
 			t.setOvertime(ot);
 			t.setFlextime(ft);
 			t.setTimesheetId(sheetId);
-			EditableEmployee e = employeeManager.getEmployeeByNumber(empNum);
+			EditableEmployee e = employeeManager
+			        .getEmployeeByNumber(empNum);
 			t.setEmployee(e);
-			DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd");
-			LocalDate localDate = LocalDate.parse(endWeek, formatter);
+			DateTimeFormatter formatter = DateTimeFormatter
+			        .ofPattern("yyyy-MM-dd");
+			LocalDate localDate = LocalDate
+			        .parse(endWeek, formatter);
 			localDate = localDate.with(TemporalAdjusters
 			        .nextOrSame(DayOfWeek.FRIDAY));
 			t.setEndWeek(localDate);
@@ -229,9 +256,18 @@ public class TimesheetManagerBean implements Serializable {
 		}
 	}
 	
+	/**
+	 * REST endpoint for adding a timesheet to an employee.
+	 * @param saltString the authentication salt string path parameter
+	 * @param empNum query parameter for the employee number
+	 * @param endWeek query parameter for the endweek
+	 * @param ot query parameter for the over time
+	 * @param ft query parameter for the flex time
+	 */
 	@Path("/addTimesheet/{saltString}")
 	@POST
-	public void addTimesheetREST(@PathParam("saltString") String saltString, @QueryParam("empNum") Integer empNum,
+	public void addTimesheetREST(@PathParam("saltString") String saltString,
+	        @QueryParam("empNum") Integer empNum,
 			@QueryParam("endWeek") String endWeek,
 			@QueryParam("ot") BigDecimal ot,
 			@QueryParam("ft") BigDecimal ft) {
@@ -243,7 +279,8 @@ public class TimesheetManagerBean implements Serializable {
 			t.setFlextime(ft);
 			EditableEmployee e = employeeManager.getEmployeeByNumber(empNum);
 			t.setEmployee(e);
-			DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd");
+			DateTimeFormatter formatter = DateTimeFormatter
+			        .ofPattern("yyyy-MM-dd");
 			LocalDate localDate = LocalDate.parse(endWeek, formatter);
 			localDate = localDate.with(TemporalAdjusters
 			        .nextOrSame(DayOfWeek.FRIDAY));
